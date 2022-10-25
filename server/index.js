@@ -16,18 +16,13 @@ app.set('port', port)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.use(jwt({
-  secret: privateKey,
-  algorithms: ["HS256"],
-}).unless({ path: [/^\/vue-admin-template\//] }))
-
 
 /*
 *status 状态码
 *msg 响应消息 
 */
 app.use((req, res, next) => {
-  res.cc = (msg, code = 500, data) => {
+  res.cc = (msg, code = 50000, data) => {
     res.send({
       code,
       message: msg instanceof Error ? msg.message : msg,
@@ -36,6 +31,12 @@ app.use((req, res, next) => {
   }
   next()
 })
+
+app.use(jwt({
+  secret: privateKey,
+  algorithms: ["HS256"],
+}).unless({ path: [/^\/vue-admin-template\//] }))
+
 
 app.all('*', function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://" + app.get('host') + ':' + app.get('port'));
@@ -54,9 +55,12 @@ app.use((req, res, next) => {
 
 app.use('/vue-admin-template', router)
 
-// app.post('/vue-admin-template/user/login', (req, res) => {
-//   console.log('收到用户名');
-// })
+//错误中间件
+app.use((err, req, res, next) => {
+  if (err.message === 'jwt malformed')
+    return res.cc('token出错了或者过期了！！', 40009)
+  return res.cc('先拦一下')
+})
 
 
 app.listen(app.get('port'), () => {

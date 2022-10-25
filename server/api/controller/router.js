@@ -1,8 +1,9 @@
-const { login, reguser, info, logout } = require('./user')
+const { login, reguser, info, logout, getRefreshToken } = require('./user')
 
 module.exports = {
   login,
   reguser,
   info,
-  logout
+  logout,
+  getRefreshToken
 }

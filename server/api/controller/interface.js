@@ -14,6 +14,10 @@ router.post('/user/reguser', expressJoi(getUsersSchema), myrouter.reguser)
 //获取用户信息
 router.post('/user/info',myrouter.info)
 
+//登出
 router.post('/user/logout',myrouter.logout)
+
+//通过refreshToken刷新token
+router.post('/user/getRefreshToken',myrouter.getRefreshToken)
 
 module.exports = router
