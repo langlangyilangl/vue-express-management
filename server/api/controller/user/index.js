@@ -16,12 +16,12 @@ exports.reguser = (req, res) => {
   const sql1 = 'select * from user where username = ?'
   db.query(sql1, user.username, (err, result) => {
     if (err) {
-      return res.send({ msg: err })
+      return res.cc(err)
     }
 
     //判断搜素该用户名是否已经存在
     if (result.length > 0) {
-      return res.cc('该用户名已被占用', 401)
+      return res.cc('该用户名已被占用', 40000)
     }
 
     //不存在则向其插入信息
@@ -31,17 +31,14 @@ exports.reguser = (req, res) => {
 
     db.query(sql2, { username: user.username, password }, (err, result) => {
       if (err) {
-        console.log('ss');
-        return res.send({ msg: err })
+        return res.cc(err)
       }
-
-      console.log(result.affectedRows);
 
       if (result.affectedRows !== 1) {   //判读影响行数是否为1
-        return res.send({ status: 401, mag: '注册失败,改变行数不为1' })
+        return res.cc('注册失败,改变行数不为1', 40001)
       }
 
-      return res.send({ mag: '注册成功' })
+      return res.cc('注册成功', 20000)
 
     })
 
@@ -60,28 +57,55 @@ exports.login = (req, res) => {
     }
 
     if (results.length !== 1) {      //判断查询到的数据是否为1条
-      return res.cc('登录失败,查询用户名行数不为1')
+      return res.cc('登录失败,查询用户名行数不为1', 40001)
     }
 
     // 比较数据库密码和登录密码是否一致
     if (bcrypt.compareSync(user.password, results[0].password)) {   //result是一个数组，需要拿[0]的字段！！！！！！！！！
       const username = user.username
       const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: '1h' })
-      return res.cc({ mag: '密码正确，登录成功', token: "Bearer " + token }, 200, { code: 20000, data: "Bearer " + token })
+      return res.cc('密码正确，登录成功', 20000, { token: "Bearer " + token })
     } else {
-      return res.cc('登录失败,密码错误', 401)
+      return res.cc('登录失败,密码错误', 40001)
     }
   })
 }
 
 //获取用户信息
 exports.info = (req, res) => {
-  const { token } = req.body
-  console.log(req.body);
-  // jwt(token, 'yulang', (err, data) => {
-  //   if (err) return res.cc('获取信息出错')
-  //   return res.cc({ msg: '获取正确用户信息', token: data }, 200, { code: 20000, data })
-  // })
-  const data = jsonwebtoken.verify(token, 'yulang')
-  return res.cc({ msg: '获取正确用户信息', token: data }, 200, { code: 20000, data })
+  //获取请求头中携带的token
+  const token = req.headers.authorization?.split(" ")[1];
+
+
+  if (token) {
+    jsonwebtoken.verify(token, keyPravity, (err, decoded) => {
+      if (err)
+        return res.cc('token错误,无法获取用户信息', 40000)
+
+
+      const sql = 'select * from user where username = ?'
+      db.query(sql, decoded.username, (err, results) => {
+        if (err) {
+          return res.cc(err)
+        }
+
+        if (results.length !== 1) {      //判断查询到的数据是否为1条
+          return res.cc('获取用户信息失败，用户不存在', 40001)
+        }
+
+
+        //拿到数据库中的该用户的个人信息，处理(避免包括密码不能在网络上传播)后发送
+        return res.cc('获取正确用户信息', 20000, results[0])
+
+      })
+
+    })
+  } else {
+    return res.cc('未获取到token,无法获取用户信息', 40000)
+  }
+}
+
+//用户注销
+exports.logout = (req, res) => {
+  res.cc(null, 20000, 'success')
 }

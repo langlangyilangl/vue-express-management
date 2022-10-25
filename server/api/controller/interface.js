@@ -14,4 +14,6 @@ router.post('/user/reguser', expressJoi(getUsersSchema), myrouter.reguser)
 //获取用户信息
 router.post('/user/info',myrouter.info)
 
+router.post('/user/logout',myrouter.logout)
+
 module.exports = router

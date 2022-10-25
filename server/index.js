@@ -27,11 +27,11 @@ app.use(jwt({
 *msg 响应消息 
 */
 app.use((req, res, next) => {
-  res.cc = (err, status = 500, other) => {
+  res.cc = (msg, code = 500, data) => {
     res.send({
-      status,
-      msg: err instanceof Error ? err.message : err,
-      ...other
+      code,
+      message: msg instanceof Error ? msg.message : msg,
+      data
     })
   }
   next()
