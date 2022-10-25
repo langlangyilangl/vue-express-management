@@ -68,10 +68,14 @@ service.interceptors.response.use(
       }
       return Promise.reject(new Error(res.message || 'Error'))
     } else {
+      // eslint-disable-next-line
+      console.log('返回成功');
       return res
     }
   },
   error => {
+    // eslint-disable-next-line
+    console.log('返回成功');
     console.log('err' + error) // for debug
     Message({
       message: error.message,
