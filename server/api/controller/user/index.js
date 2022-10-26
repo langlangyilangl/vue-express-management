@@ -2,7 +2,9 @@ const { query } = require('express')
 const db = require('../../model/db')
 const jsonwebtoken = require('jsonwebtoken')
 const bcrypt = require('bcrypt')    //加密插件
-const { expressjwt: jwt } = require('express-jwt')
+
+const TOKEN_TIME = '5min'  //token过期时间
+const REFRESH_TOKEN_TIME = '10h'  //refreshtoken过期时间
 
 
 const saltRounds = 8 //加密key
@@ -65,8 +67,8 @@ exports.login = (req, res) => {
     if (bcrypt.compareSync(user.password, results[0].password)) {   //result是一个数组，需要拿[0]的字段！！！！！！！！！
       const username = user.username
 
-      const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: '30min' })
-      const refreshToken = jsonwebtoken.sign({ username }, refreshKeyPravity, { expiresIn: '10h' })
+      const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: TOKEN_TIME })
+      const refreshToken = jsonwebtoken.sign({ username }, refreshKeyPravity, { expiresIn: REFRESH_TOKEN_TIME })
 
       return res.cc('密码正确，登录成功', 20000, { token: "Bearer " + token, refreshToken })
     } else {
@@ -99,7 +101,23 @@ exports.info = (req, res) => {
 
 
         //拿到数据库中的该用户的个人信息，处理(避免包括密码不能在网络上传播)后发送
-        return res.cc('获取正确用户信息', 20000, results[0])
+        delete results[0].password
+        //查询该用户拥有的角色
+        const getrolesql = 'select roleId from jurisdiction where userId = ?'
+        db.query(getrolesql, results[0].id, (err, roles) => {
+          if (err) {
+            return res.cc(err)
+          }
+
+          if (roles.length === 0) {      //判断查询到的数据是否为1条
+            return res.cc('该用户没有角色', 40004)
+          }
+
+          const role = roles.map(item => item.roleId)
+          return res.cc('获取正确用户信息', 20000, { ...results[0], role })
+
+        })
+
 
       })
 
@@ -126,10 +144,10 @@ exports.getRefreshToken = (req, res) => {
 
     //取出refreshToken包含的username
     const { username } = decoded
-    const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: '30min' })
-    const refreshToken = jsonwebtoken.sign({ username }, refreshKeyPravity, { expiresIn: '10h' })
+    const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: TOKEN_TIME })
+    const refreshToken = jsonwebtoken.sign({ username }, refreshKeyPravity, { expiresIn: REFRESH_TOKEN_TIME })
 
-    return res.cc('密码正确，登录成功', 20000, { token: "Bearer " + token, refreshToken })
+    return res.cc('refreshToken正确，登录成功', 20000, { token: "Bearer " + token, refreshToken })
   })
 
 }
