@@ -22,3 +22,19 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function refreshToken(refreshToken) {
+  return request({
+    url: '/vue-admin-template/user/getRefreshToken',
+    method: 'post',
+    data: { refreshToken }
+  })
+}
+
+// 测试请求
+export function test() {
+  return request({
+    url: '/test',
+    method: 'post'
+  })
+}

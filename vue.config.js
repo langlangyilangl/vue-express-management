@@ -42,7 +42,7 @@ module.exports = {
         target: "http://127.0.0.1:7758",
         changeOrigin: true,
         secure: false,
-        logLevel:'debug',
+        // logLevel:'debug',   可以查看真实的请求路径
         pathRewrite: {
           ['^' + process.env.VUE_APP_BASE_API]: ''
         }

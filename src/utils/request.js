@@ -19,7 +19,7 @@ service.interceptors.request.use(
       // let each request carry token
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
-      config.headers['X-Token'] = getToken()
+      config.headers['authorization'] = getToken()
     }
     return config
   },
@@ -47,6 +47,14 @@ service.interceptors.response.use(
 
     // if the custom code is not 20000, it is judged as an error.
     if (res.code !== 20000) {
+      // 判断一下是否时token过期，过期的话就验证refrshToken是否过期
+      if (res.code === 40009) {
+        store.dispatch('user/refreshToken').then(() => {
+          location.reload()
+        })
+        return res
+      }
+
       Message({
         message: res.message || 'Error',
         type: 'error',
