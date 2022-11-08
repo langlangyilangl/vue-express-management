@@ -25,7 +25,7 @@ exports.reguser = (req, res) => {
 
     //判断搜素该用户名是否已经存在
     if (result.length > 0) {
-      return res.cc('该用户名已被占用', 40000)
+      return res.cc('该用户名已被占用', 400)
     }
 
     //不存在则向其插入信息
@@ -37,10 +37,10 @@ exports.reguser = (req, res) => {
       }
 
       if (result.affectedRows !== 1) {   //判读影响行数是否为1
-        return res.cc('注册失败,改变行数不为1', 40004)
+        return res.cc('注册失败,改变行数不为1', 404)
       }
 
-      return res.cc('注册成功', 20000)
+      return res.cc('注册成功', 200)
 
     })
 
@@ -57,7 +57,7 @@ exports.login = (req, res) => {
     }
 
     if (results.length !== 1) {      //判断查询到的数据是否为1条
-      return res.cc('登录失败,查询用户名行数不为1', 40004)
+      return res.cc('登录失败,查询用户名行数不为1', 404)
     }
 
     // 比较数据库密码和登录密码是否一致
@@ -67,9 +67,9 @@ exports.login = (req, res) => {
       const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: TOKEN_TIME })
       const refreshToken = jsonwebtoken.sign({ username }, refreshKeyPravity, { expiresIn: REFRESH_TOKEN_TIME })
 
-      return res.cc('密码正确，登录成功', 20000, { token: "Bearer " + token, refreshToken })
+      return res.cc('密码正确，登录成功', 200, { token: "Bearer " + token, refreshToken })
     } else {
-      return res.cc('登录失败,密码错误', 40000)
+      return res.cc('登录失败,密码错误', 400)
     }
   })
 }
@@ -83,7 +83,7 @@ exports.info = (req, res) => {
   if (token) {
     jsonwebtoken.verify(token, keyPravity, (err, decoded) => {
       if (err)
-        return res.cc('token错误或过期,无法获取用户信息', 40009)
+        return res.cc('token错误或过期,无法获取用户信息', 409)
 
       db.query(userSql.getUserInfo, decoded.username, (err, results) => {
         if (err) {
@@ -91,7 +91,7 @@ exports.info = (req, res) => {
         }
 
         if (results.length !== 1) {      //判断查询到的数据是否为1条
-          return res.cc('获取用户信息失败，用户不存在', 40004)
+          return res.cc('获取用户信息失败，用户不存在', 404)
         }
 
 
@@ -104,11 +104,11 @@ exports.info = (req, res) => {
           }
 
           if (roles.length === 0) {      //判断查询到的数据是否为1条
-            return res.cc('该用户没有角色', 40004)
+            return res.cc('该用户没有角色', 404)
           }
 
           const role = roles.map(item => item.roleId)
-          return res.cc('获取正确用户信息', 20000, { ...results[0], role })
+          return res.cc('获取正确用户信息', 200, { ...results[0], role })
 
         })
 
@@ -117,14 +117,14 @@ exports.info = (req, res) => {
 
     })
   } else {
-    return res.cc('未获取到token,无法获取用户信息', 40000)
+    return res.cc('未获取到token,无法获取用户信息', 400)
   }
 }
 
 
 //用户注销
 exports.logout = (req, res) => {
-  res.cc(null, 20000, 'success')
+  res.cc(null, 200, 'success')
 }
 
 //通过refreshToken重新获取token  
@@ -134,14 +134,14 @@ exports.getRefreshToken = (req, res) => {
 
   //验证refreshToken是否正确
   jsonwebtoken.verify(refreshToken, refreshKeyPravity, (err, decoded) => {
-    if (err) return res.cc('refreshToken错误,请重新登录', 40001)
+    if (err) return res.cc('refreshToken错误,请重新登录', 401)
 
     //取出refreshToken包含的username
     const { username } = decoded
     const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: TOKEN_TIME })
     const refreshToken = jsonwebtoken.sign({ username }, refreshKeyPravity, { expiresIn: REFRESH_TOKEN_TIME })
 
-    return res.cc('refreshToken正确,登录成功', 20000, { token: "Bearer " + token, refreshToken })
+    return res.cc('refreshToken正确,登录成功', 200, { token: "Bearer " + token, refreshToken })
   })
 
 }

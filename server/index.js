@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 *msg 响应消息 
 */
 app.use((req, res, next) => {
-  res.cc = (msg, code = 50000, data) => {
+  res.cc = (msg, code = 500, data) => {
     res.send({
       code,
       message: msg instanceof Error ? msg.message : msg,
@@ -56,16 +56,16 @@ app.use((req, res, next) => {
 app.use(router)
 
 app.post('/test', (req, res, next) => {
-  res.cc('通过', 20000, { mag: '你好' })
+  res.cc('通过', 200, { mag: '你好' })
 })
 
 //错误中间件
 app.use((err, req, res, next) => {
   if (err.message === 'jwt expired')
-    return res.cc('token出错了或者过期了！！', 40009)
+    return res.cc('token出错了或者过期了！！', 409)
   if (err.message === 'jwt malformed')
-    return res.cc('token格式错误', 40009)
-  return res.cc(err, 50000, { mag: '先拦一下,错误中间件拦截' })
+    return res.cc('token格式错误', 409)
+  return res.cc(err, 500, { mag: '先拦一下,错误中间件拦截' })
 })
 
 

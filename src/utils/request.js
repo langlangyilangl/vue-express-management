@@ -45,10 +45,10 @@ service.interceptors.response.use(
   response => {
     const res = response.data
 
-    // if the custom code is not 20000, it is judged as an error.
-    if (res.code !== 20000) {
+    // if the custom code is not 200, it is judged as an error.
+    if (res.code !== 200) {
       // 判断一下是否时token过期，过期的话就验证refrshToken是否过期
-      if (res.code === 40009) {
+      if (res.code === 409) {
         store.dispatch('user/refreshToken').then(() => {
           location.reload()
         })
@@ -61,8 +61,8 @@ service.interceptors.response.use(
         duration: 5 * 1000
       })
 
-      // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
-      if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
+      // 508: Illegal token; 512: Other clients logged in; 514: Token expired;
+      if (res.code === 508 || res.code === 512 || res.code === 514) {
         // to re-login
         MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
           confirmButtonText: 'Re-Login',
