@@ -1,8 +1,10 @@
 const { Router } = require('express')
-const interface = require('./controller/interface')
+const userRouter = require('./router/userRouter')
+const customerRouter = require('./router/customerRouter')
 
 const router = Router()
 
-router.use(interface)
+router.use(userRouter)
+router.use(customerRouter)
 
 module.exports =  router

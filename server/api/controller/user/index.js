@@ -1,9 +1,11 @@
-const { query } = require('express')
+// const { query } = require('express')
 const db = require('../../model/db')
 const jsonwebtoken = require('jsonwebtoken')
 const bcrypt = require('bcrypt')    //加密插件
+const userSql = require('../../model/sql/userSql')
+const jurisdictionSql = require('../../model/sql/jurisdictionSql')
 
-const TOKEN_TIME = '5min'  //token过期时间
+const TOKEN_TIME = '30min'  //token过期时间
 const REFRESH_TOKEN_TIME = '10h'  //refreshtoken过期时间
 
 
@@ -16,8 +18,7 @@ exports.reguser = (req, res) => {
   //获取用户信息
   const user = req.body
 
-  const sql1 = 'select * from user where username = ?'
-  db.query(sql1, user.username, (err, result) => {
+  db.query(userSql.getUserInfo, user.username, (err, result) => {
     if (err) {
       return res.cc(err)
     }
@@ -28,11 +29,9 @@ exports.reguser = (req, res) => {
     }
 
     //不存在则向其插入信息
-    const sql2 = 'insert into user set ?'
-
     const password = bcrypt.hashSync(user.password, saltRounds); //加密密码，在数据库存储加密密码
 
-    db.query(sql2, { username: user.username, password }, (err, result) => {
+    db.query(userSql.createUser, { username: user.username, password }, (err, result) => {
       if (err) {
         return res.cc(err)
       }
@@ -52,9 +51,7 @@ exports.reguser = (req, res) => {
 exports.login = (req, res) => {
   const user = req.body
 
-  const sql = 'select * from user where username = ?'
-
-  db.query(sql, user.username, (err, results) => {
+  db.query(userSql.getUserInfo, user.username, (err, results) => {
     if (err) {
       return res.cc(err)
     }
@@ -88,9 +85,7 @@ exports.info = (req, res) => {
       if (err)
         return res.cc('token错误或过期,无法获取用户信息', 40009)
 
-
-      const sql = 'select * from user where username = ?'
-      db.query(sql, decoded.username, (err, results) => {
+      db.query(userSql.getUserInfo, decoded.username, (err, results) => {
         if (err) {
           return res.cc(err)
         }
@@ -100,11 +95,10 @@ exports.info = (req, res) => {
         }
 
 
-        //拿到数据库中的该用户的个人信息，处理(避免包括密码不能在网络上传播)后发送
+        //拿到数据库中的该用户的个人信息，删除密码等字段(避免包括密码不能在网络上传播)后发送
         delete results[0].password
         //查询该用户拥有的角色
-        const getrolesql = 'select roleId from jurisdiction where userId = ?'
-        db.query(getrolesql, results[0].id, (err, roles) => {
+        db.query(jurisdictionSql.getroleInfo, results[0].id, (err, roles) => {
           if (err) {
             return res.cc(err)
           }
@@ -147,7 +141,7 @@ exports.getRefreshToken = (req, res) => {
     const token = jsonwebtoken.sign({ username }, keyPravity, { expiresIn: TOKEN_TIME })
     const refreshToken = jsonwebtoken.sign({ username }, refreshKeyPravity, { expiresIn: REFRESH_TOKEN_TIME })
 
-    return res.cc('refreshToken正确，登录成功', 20000, { token: "Bearer " + token, refreshToken })
+    return res.cc('refreshToken正确,登录成功', 20000, { token: "Bearer " + token, refreshToken })
   })
 
 }

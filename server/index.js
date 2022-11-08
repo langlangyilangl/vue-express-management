@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 app.use(jwt({
   secret: privateKey,
   algorithms: ["HS256"],
-}).unless({ path: [/^\/vue-admin-template\//] }))
+}).unless({ path: [/^\/user\//] }))
 
 
 app.all('*', function (req, res, next) {
@@ -53,7 +53,7 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use('/vue-admin-template', router)
+app.use(router)
 
 app.post('/test', (req, res, next) => {
   res.cc('通过', 20000, { mag: '你好' })
@@ -63,7 +63,9 @@ app.post('/test', (req, res, next) => {
 app.use((err, req, res, next) => {
   if (err.message === 'jwt expired')
     return res.cc('token出错了或者过期了！！', 40009)
-  return res.cc(err, 50000, { mag: '先拦一下' })
+  if (err.message === 'jwt malformed')
+    return res.cc('token格式错误', 40009)
+  return res.cc(err, 50000, { mag: '先拦一下,错误中间件拦截' })
 })
 
 
