@@ -4,7 +4,7 @@ const customerRouter = require('./router/customerRouter')
 
 const router = Router()
 
-router.use(userRouter)
-router.use(customerRouter)
+router.use('/user',userRouter)
+router.use('/customer',customerRouter)
 
 module.exports =  router

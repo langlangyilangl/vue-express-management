@@ -6,19 +6,19 @@ const { getUserSchema } = require('../utils/joi')
 const router = Router()
 
 //用户登录
-router.post('/user/login', expressJoi(getUserSchema), login)
+router.post('/login', expressJoi(getUserSchema), login)
 
 //用户注册
-router.post('/user/reguser', expressJoi(getUserSchema), reguser)
+router.post('/reguser', expressJoi(getUserSchema), reguser)
 
 //获取用户信息
-router.post('/user/info', info)
+router.post('/info', info)
 
 //登出
-router.post('/user/logout', logout)
+router.post('/logout', logout)
 
 //通过refreshToken刷新token
-router.post('/user/getRefreshToken', getRefreshToken)
+router.post('/getRefreshToken', getRefreshToken)
 
 
 

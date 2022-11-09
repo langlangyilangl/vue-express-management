@@ -14,6 +14,7 @@ const username = joi.string().alphanum().min(2).max(30).required().error(new Err
 const password = joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
 
 // 顾客属性限制
+const customerId = joi.number();
 const customerName = joi.string().min(2).max(30).required();
 const customerType = joi.string().required().valid('person', 'factory', 'supplier').error(new Error('只能输入个人，供应商和工厂'))
 const registerDate = joi.date().required()
@@ -37,6 +38,7 @@ exports.getUserSchema = {
 
 exports.getCustomerSchema = {
   body: {
+    customerId,
     customerName,
     customerType,
     registerDate,
